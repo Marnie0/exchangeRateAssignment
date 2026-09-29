@@ -1,0 +1,11 @@
+.main .header {
+  height: 10vh;
+}
+
+.header .img {
+  width: 130px;
+  object-fit: cover;
+}
+.main .mainSection {
+  height: 90vh;
+}
