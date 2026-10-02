@@ -8,7 +8,7 @@ const firstFlag = document.querySelector(".firstFlag");
 const secondFlag = document.querySelector(".secondFlag");
 const result = document.querySelector(".result");
 
-const COUNTRY_NAMES = {
+const CURRENCY_NAMES = {
   AED: "United Arab Emirates Dirham",
   AFN: "Afghan Afghani",
   ALL: "Albanian Lek",
@@ -161,23 +161,22 @@ const COUNTRY_NAMES = {
   ZMW: "Zambian Kwacha",
 };
 
-function updateFlag() {
+function updateFlags() {
   const from = fromCurrency.value.slice(0, 2);
   const to = toCurrency.value.slice(0, 2);
   firstFlag.src = `https://flagsapi.com/${from}/shiny/32.png`;
   secondFlag.src = `https://flagsapi.com/${to}/shiny/32.png`;
 }
 
-function validateInputAmount() {
-  const amount = Number(inputAmount.value);
-
-  return amount > 0 || inputAmount.value === "";
+function getAmount() {
+  if (inputAmount.value === "") {
+    return 1;
+  }
+  const amount =inputAmount.valueAsNumber;
+  return amount > 0 ? amount : null;
 }
 
-async function getConversionRate() {
-  const from = fromCurrency.value;
-  const to = toCurrency.value;
-
+async function getConversionRate(from, to) {
   const response = await fetch(
     `https://v6.exchangerate-api.com/v6/e4c8723539b18f5b01542765/latest/${from}`,
   );
@@ -189,23 +188,27 @@ async function getConversionRate() {
 }
 
 async function convertCurrency() {
-  if (validateInputAmount()) {
+  const amount = getAmount();
+  if(amount === null) {
+    result.textContent = "Please enter a valid amount greater than 0.";
+    return;
+  }
+  const from = fromCurrency.value;
+  const to = toCurrency.value;
     try {
-      const conversionRate = await getConversionRate();
-      const amount = Number(inputAmount.value) || 1;
+      const conversionRate = await getConversionRate(from, to);
       const convertedAmount = amount * conversionRate;
 
-      result.textContent = `${amount.toFixed(2)} ${fromCurrency.value} = ${convertedAmount.toFixed(2)} ${toCurrency.value}`;
+      result.textContent = `${amount.toFixed(2)} ${from} = ${convertedAmount.toFixed(2)} ${to}`;
     } catch (error) {
       result.textContent =
         "Error fetching conversion rate. Please try again later.";
       console.log(error);
     }
-  }
 }
 
 formSelects.forEach((select) => {
-  for (const [code, name] of Object.entries(COUNTRY_NAMES)) {
+  for (const [code, name] of Object.entries(CURRENCY_NAMES)) {
     const option = document.createElement("option");
     option.value = code;
     option.textContent = `${code} - ${name}`;
@@ -213,17 +216,17 @@ formSelects.forEach((select) => {
   }
 });
 
-updateFlag();
+updateFlags();
 
-fromCurrency.addEventListener("change", updateFlag);
-toCurrency.addEventListener("change", updateFlag);
+fromCurrency.addEventListener("change", updateFlags);
+toCurrency.addEventListener("change", updateFlags);
 
 swapBtn.addEventListener("click", () => {
   [fromCurrency.value, toCurrency.value] = [
     toCurrency.value,
     fromCurrency.value,
   ];
-  updateFlag();
+  updateFlags();
 });
 
 form.addEventListener("submit", (e) => {
